@@ -1,52 +1,52 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { SaveIndicator } from './save-indicator';
-import type { SaveStatus } from '@/lib/types/notes';
-import { MoreHorizontalIcon, TrashIcon } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { useNoteContext } from "@/lib/contexts/note-context";
+import { MoreHorizontalIcon, SaveIcon, TrashIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { SaveIndicator } from "./save-indicator";
 
 interface NoteHeaderProps {
-  title: string;
-  onTitleChange: (newTitle: string) => void;
-  status: SaveStatus;
-  onDelete?: () => void;
   className?: string;
 }
 
-export function NoteHeader({
-  title,
-  onTitleChange,
-  status,
-  onDelete,
-  className = '',
-}: NoteHeaderProps) {
+export function NoteHeader({ className = "" }: NoteHeaderProps) {
+  const { note, updateTitle, saveNote, deleteNote, status } = useNoteContext();
   const [isEditing, setIsEditing] = useState(false);
-  const [editableTitle, setEditableTitle] = useState(title);
+  const [editableTitle, setEditableTitle] = useState(note?.title || "");
 
   useEffect(() => {
-    setEditableTitle(title);
-  }, [title]);
+    if (note?.title) {
+      setEditableTitle(note.title);
+    }
+  }, [note?.title]);
 
   const handleTitleSubmit = () => {
     setIsEditing(false);
-    if (editableTitle.trim() !== title) {
-      onTitleChange(editableTitle.trim() || 'Untitled Note');
+    if (note && editableTitle.trim() !== note.title) {
+      updateTitle(editableTitle.trim() || "Untitled Note");
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleTitleSubmit();
-    } else if (e.key === 'Escape') {
-      setEditableTitle(title);
+    } else if (e.key === "Escape") {
+      setEditableTitle(note?.title || "");
       setIsEditing(false);
     }
   };
 
   return (
-    <header className={`border-b border-gray-200 bg-white px-6 py-4 ${className}`}>
+    <header className={`px-6 py-4 ${className}`}>
       <div className="flex items-center justify-between">
         <div className="flex-1 min-w-0">
           {isEditing ? (
@@ -55,40 +55,44 @@ export function NoteHeader({
               onChange={(e) => setEditableTitle(e.target.value)}
               onBlur={handleTitleSubmit}
               onKeyDown={handleKeyDown}
-              className="text-xl font-semibold border-none shadow-none px-0 focus-visible:ring-0"
+              className="text-xl font-semibold border-none shadow-none px-0 focus-visible:ring-0 font-heading"
               autoFocus
             />
           ) : (
             <h1
-              className="text-xl font-semibold text-gray-900 cursor-pointer hover:text-gray-700 truncate"
+              className="text-xl font-semibold text-gray-900 cursor-pointer hover:text-gray-700 truncate font-heading"
               onClick={() => setIsEditing(true)}
               title="Click to edit title"
             >
-              {title}
+              {note?.title || "Untitled Note"}
             </h1>
           )}
         </div>
 
         <div className="flex items-center space-x-4 ml-4">
           <SaveIndicator status={status} />
-          
-          {onDelete && (
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onDelete}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-              >
-                <TrashIcon className="h-4 w-4 mr-2" />
-                Delete
-              </Button>
-              
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm">
                 <MoreHorizontalIcon className="h-4 w-4" />
               </Button>
-            </div>
-          )}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={saveNote}>
+                <SaveIcon className="h-4 w-4 mr-2" />
+                Save Note
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={deleteNote}
+                className="text-red-600 focus:text-red-600 focus:bg-red-50"
+              >
+                <TrashIcon className="h-4 w-4 mr-2" />
+                Delete Note
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
