@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useAuth } from "@/lib/hooks/use-auth";
 import { LogOut, PlusIcon, User } from "lucide-react";
 import { signIn, signOut } from "next-auth/react";
 import Link from "next/link";
@@ -22,7 +22,7 @@ export function Header({ onCreateNote }: HeaderProps) {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center space-x-4">
           <Link href="/notes" className="text-xl font-bold text-gray-900">
-            Notes AI
+            Note-Rags
           </Link>
         </div>
 

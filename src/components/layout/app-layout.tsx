@@ -1,28 +1,32 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { Header } from './header';
-import { Sidebar } from './sidebar';
-import { useNotesStore } from '@/lib/stores/notes';
-import { useAuth } from '@/lib/hooks/useAuth';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { useAuth } from "@/lib/hooks/use-auth";
+import { useCreateNoteWithDefaults } from "@/lib/hooks/use-notes";
+import { useRouter } from "next/navigation";
+import { Header } from "./header";
 
 interface AppLayoutProps {
   children: React.ReactNode;
   showSidebar?: boolean;
 }
 
-export function AppLayout({ children, showSidebar = true }: AppLayoutProps) {
+export function AppLayout({ children, showSidebar = false }: AppLayoutProps) {
   const router = useRouter();
-  const createNote = useNotesStore((state) => state.createNote);
+  const createNoteMutation = useCreateNoteWithDefaults();
   const { isLoading, isAuthenticated } = useAuth();
 
   const handleCreateNote = async () => {
     try {
-      const newNote = await createNote('Untitled Note', '');
+      const newNote = await createNoteMutation.mutateAsync({
+        title: "Untitled Note",
+        content: "",
+      });
       router.push(`/notes/${newNote.id}`);
     } catch (error) {
-      console.error('Failed to create note:', error);
+      console.error("Failed to create note:", error);
+      // Show user-friendly error message
+      alert("Failed to create new note. Please make sure the API server is running on localhost:8003");
     }
   };
 
@@ -40,12 +44,7 @@ export function AppLayout({ children, showSidebar = true }: AppLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header onCreateNote={handleCreateNote} />
-      <div className="flex">
-        {showSidebar && isAuthenticated && <Sidebar />}
-        <main className="flex-1">
-          {children}
-        </main>
-      </div>
+      <main className="w-full">{children}</main>
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { cn, formatDate, getContentPreview } from '@/lib/utils';
-import type { Note } from '@/lib/types/notes';
+import type { Note } from '@/lib/api/interfaces/notes-repository.interface';
 import { FileTextIcon } from 'lucide-react';
 import Link from 'next/link';
 
