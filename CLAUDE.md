@@ -1,1 +1,2 @@
 - I'll start the development server myself
+- We're using shadcn-ui for UI components, not radix
