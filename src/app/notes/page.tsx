@@ -1,34 +1,27 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { NoteCard } from '@/components/notes/note-card';
-import { useNotesStore } from '@/lib/stores/notes';
+import { useNotesUIStore } from '@/lib/stores/notes';
+import { useNotes, useCreateNoteWithDefaults } from '@/lib/hooks/use-notes';
 import { CalendarIcon, FileTextIcon, FunnelIcon, PlusIcon, SearchIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function NotesPage() {
   const router = useRouter();
-  const {
-    notes,
-    isLoading,
-    error,
-    searchQuery,
-    loadNotes,
-    createNote,
-    setSearchQuery,
-    clearError,
-  } = useNotesStore();
+  const { searchQuery, setSearchQuery } = useNotesUIStore();
+  
+  // Use React Query for server data
+  const { data: notesData, isLoading, error } = useNotes(1, 100); // Load more notes for client-side filtering
+  const createNoteMutation = useCreateNoteWithDefaults();
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
-  // Load notes on component mount
-  useEffect(() => {
-    loadNotes();
-  }, [loadNotes]);
+  const notes = useMemo(() => notesData?.items || [], [notesData?.items]);
 
   // Filter notes based on search query
   const filteredNotes = useMemo(() => {
@@ -68,10 +61,14 @@ export default function NotesPage() {
 
   const handleCreateNote = async () => {
     try {
-      const newNote = await createNote('Untitled Note', '');
+      const newNote = await createNoteMutation.mutateAsync({
+        title: 'Untitled Note',
+        content: ''
+      });
       router.push(`/notes/${newNote.id}`);
     } catch (error) {
       console.error('Failed to create note:', error);
+      alert('Failed to create new note. Please make sure the API server is running on localhost:8003');
     }
   };
 
@@ -79,8 +76,10 @@ export default function NotesPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <Button onClick={clearError}>Try Again</Button>
+          <p className="text-red-600 mb-4">
+            {error instanceof Error ? error.message : 'Failed to load notes'}
+          </p>
+          <Button onClick={() => window.location.reload()}>Try Again</Button>
         </div>
       </div>
     );
@@ -92,7 +91,7 @@ export default function NotesPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Notes Vault</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Note-Rags</h1>
             <p className="mt-2 text-gray-600">Manage and explore your knowledge base</p>
           </div>
           <Button onClick={handleCreateNote} className="flex items-center space-x-2">
@@ -107,7 +106,7 @@ export default function NotesPage() {
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading your vault...</p>
+            <p className="text-gray-600">Loading your notes...</p>
           </div>
         </div>
       ) : (

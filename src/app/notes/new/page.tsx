@@ -2,16 +2,19 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useNotesStore } from '@/lib/stores/notes';
+import { useCreateNoteWithDefaults } from '@/lib/hooks/use-notes';
 
 export default function NewNotePage() {
   const router = useRouter();
-  const createNote = useNotesStore((state) => state.createNote);
+  const createNoteMutation = useCreateNoteWithDefaults();
 
   useEffect(() => {
     const createNewNote = async () => {
       try {
-        const newNote = await createNote('Untitled Note', '');
+        const newNote = await createNoteMutation.mutateAsync({
+          title: 'Untitled Note',
+          content: ''
+        });
         router.replace(`/notes/${newNote.id}`);
       } catch (error) {
         console.error('Failed to create note:', error);
@@ -20,7 +23,7 @@ export default function NewNotePage() {
     };
 
     createNewNote();
-  }, [createNote, router]);
+  }, [createNoteMutation, router]);
 
   return (
     <div className="flex h-full items-center justify-center">
