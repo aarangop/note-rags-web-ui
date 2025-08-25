@@ -2,7 +2,7 @@ import type { NextAuthOptions } from "next-auth";
 import NextAuth from "next-auth";
 import CognitoProvider from "next-auth/providers/cognito";
 
-const authOptions: NextAuthOptions = {
+export const authOptions: NextAuthOptions = {
   providers: [
     CognitoProvider({
       clientId: process.env.COGNITO_CLIENT_ID!,
@@ -23,8 +23,8 @@ const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      session.accessToken = token.accessToken as string;
-      session.idToken = token.idToken as string;
+      session.accessToken = token.accessToken || '';
+      session.idToken = token.idToken || '';
       return session;
     },
   },

@@ -1,7 +1,9 @@
 // Placeholder for GenAI repository interface
 // To be implemented when GenAI API types are available
 
-export interface IGenAIRepository {
+import { IBaseRepository } from "./base-repository.interface";
+
+export interface IGenAIRepository extends IBaseRepository {
   // Placeholder methods - to be defined based on GenAI API spec
   generateSummary?(content: string): Promise<string>;
   generateTags?(content: string): Promise<string[]>;

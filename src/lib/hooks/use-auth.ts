@@ -7,7 +7,7 @@ export function useAuth() {
   const { data: session, status } = useSession();
 
   const user: AuthUser | null = session?.user ? {
-    id: (session.user as any).id || session.user.email || '',
+    id: ('id' in session.user ? session.user.id as string : null) || session.user.email || '',
     name: session.user.name,
     email: session.user.email,
     image: session.user.image,

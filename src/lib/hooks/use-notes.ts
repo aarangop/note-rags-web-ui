@@ -1,3 +1,4 @@
+import { useRepository } from "../../components/providers/repository-provider";
 import type {
   NoteCreate,
   NoteUpdate,
@@ -9,7 +10,6 @@ import {
   useNotes as useNotesQuery,
   useUpdateNote as useUpdateNoteMutation,
 } from "../api/notes/queries";
-import { useRepository } from "../providers/repository-provider";
 
 // Custom hooks that automatically inject the repository
 export const useNotes = (page: number = 1, size: number = 12) => {

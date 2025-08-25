@@ -58,7 +58,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/me": {
+    "/user/me": {
         parameters: {
             query?: never;
             header?: never;
@@ -66,7 +66,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Current User Info
+         * Get User Info
          * @description Get current authenticated user information.
          *
          *     This endpoint demonstrates the Cognito JWT authentication integration.
@@ -86,7 +86,7 @@ export interface paths {
          *     - Create a new user record if this is the first time accessing the API
          *     - Return the complete user information
          */
-        get: operations["get_current_user_info_auth_me_get"];
+        get: operations["get_user_info_user_me_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -95,7 +95,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/profile": {
+    "/user/profile": {
         parameters: {
             query?: never;
             header?: never;
@@ -111,7 +111,7 @@ export interface paths {
          *     - **Authorization**: Bearer token required (Cognito JWT)
          *     - **Returns**: Complete user profile information
          */
-        get: operations["get_user_profile_auth_profile_get"];
+        get: operations["get_user_profile_user_profile_get"];
         /**
          * Update User Profile
          * @description Update current user's profile information.
@@ -128,7 +128,7 @@ export interface paths {
          *     - Username must be unique across all users (if provided)
          *     - At least one field must be provided for update
          */
-        put: operations["update_user_profile_auth_profile_put"];
+        put: operations["update_user_profile_user_profile_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -136,7 +136,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/register": {
+    "/user/register": {
         parameters: {
             query?: never;
             header?: never;
@@ -167,7 +167,7 @@ export interface paths {
          *     - Username must be unique if provided
          *     - Will update existing auto-created user record
          */
-        post: operations["register_user_with_profile_auth_register_post"];
+        post: operations["register_user_with_profile_user_register_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -237,6 +237,11 @@ export interface components {
             };
             /** Id */
             id: number;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
         };
         /** NoteCreate */
         NoteCreate: {
@@ -292,64 +297,143 @@ export interface components {
         };
         /**
          * ProfileUpdateRequest
-         * @description Request model for updating user profile.
+         * @description Request model for updating user profile information.
+         *
+         *     Used when users want to update their profile information through PUT/PATCH
+         *     endpoints. All fields are optional to allow partial updates.
+         *
+         *     Attributes:
+         *         email: New email address for the user
+         *         username: New username for the user
+         *         full_name: New full name for the user
          */
         ProfileUpdateRequest: {
-            /** Email */
+            /**
+             * Email
+             * @description New email address for the user
+             */
             email?: string | null;
-            /** Username */
+            /**
+             * Username
+             * @description New username for the user
+             */
             username?: string | null;
-            /** Full Name */
+            /**
+             * Full Name
+             * @description New full name for the user
+             */
             full_name?: string | null;
         };
         /**
          * UserRegistrationRequest
          * @description Request model for user registration with profile data.
+         *
+         *     Used during user registration to capture initial profile information.
+         *     Email is required, while username and full_name are optional and can
+         *     be provided later during profile completion.
+         *
+         *     Attributes:
+         *         email: User's email address (required)
+         *         username: Optional username chosen by the user
+         *         full_name: Optional full name of the user
          */
         UserRegistrationRequest: {
-            /** Email */
+            /**
+             * Email
+             * @description User's email address (required)
+             */
             email: string;
-            /** Username */
+            /**
+             * Username
+             * @description Optional username chosen by the user
+             */
             username?: string | null;
-            /** Full Name */
+            /**
+             * Full Name
+             * @description Optional full name of the user
+             */
             full_name?: string | null;
         };
         /**
          * UserResponse
-         * @description Response model for user information.
+         * @description Response model for user information in API responses.
+         *
+         *     Used when returning user data to clients. Contains all user information
+         *     including profile status and timestamps. This is typically used for
+         *     GET endpoints that return user information.
+         *
+         *     Attributes:
+         *         id: Unique identifier for the user
+         *         cognito_user_id: AWS Cognito user identifier
+         *         email: User's email address
+         *         username: Optional username chosen by the user
+         *         full_name: Optional full name of the user
+         *         is_active: Whether the user account is active
+         *         is_verified: Whether the user's email has been verified
+         *         is_profile_complete: Whether the user has completed their profile setup
+         *         created_at: Timestamp when the user was created
+         *         updated_at: Timestamp when the user was last updated
+         *         last_login_at: Timestamp of the user's last login, if any
          */
         UserResponse: {
             /**
              * Id
              * Format: uuid
+             * @description Unique identifier for the user
              */
             id: string;
-            /** Cognito User Id */
+            /**
+             * Cognito User Id
+             * @description AWS Cognito user identifier
+             */
             cognito_user_id: string;
-            /** Email */
+            /**
+             * Email
+             * @description User's email address
+             */
             email: string;
-            /** Username */
-            username: string | null;
-            /** Full Name */
-            full_name: string | null;
-            /** Is Active */
+            /**
+             * Username
+             * @description Optional username chosen by the user
+             */
+            username?: string | null;
+            /**
+             * Full Name
+             * @description Optional full name of the user
+             */
+            full_name?: string | null;
+            /**
+             * Is Active
+             * @description Whether the user account is active
+             */
             is_active: boolean;
-            /** Is Verified */
+            /**
+             * Is Verified
+             * @description Whether the user's email has been verified
+             */
             is_verified: boolean;
-            /** Is Profile Complete */
+            /**
+             * Is Profile Complete
+             * @description Whether the user has completed their profile setup
+             */
             is_profile_complete: boolean;
             /**
              * Created At
              * Format: date-time
+             * @description Timestamp when the user was created
              */
             created_at: string;
             /**
              * Updated At
              * Format: date-time
+             * @description Timestamp when the user was last updated
              */
             updated_at: string;
-            /** Last Login At */
-            last_login_at: string | null;
+            /**
+             * Last Login At
+             * @description Timestamp of the user's last login, if any
+             */
+            last_login_at?: string | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -553,7 +637,7 @@ export interface operations {
             };
         };
     };
-    get_current_user_info_auth_me_get: {
+    get_user_info_user_me_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -573,7 +657,7 @@ export interface operations {
             };
         };
     };
-    get_user_profile_auth_profile_get: {
+    get_user_profile_user_profile_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -593,7 +677,7 @@ export interface operations {
             };
         };
     };
-    update_user_profile_auth_profile_put: {
+    update_user_profile_user_profile_put: {
         parameters: {
             query?: never;
             header?: never;
@@ -626,7 +710,7 @@ export interface operations {
             };
         };
     };
-    register_user_with_profile_auth_register_post: {
+    register_user_with_profile_user_register_post: {
         parameters: {
             query?: never;
             header?: never;
