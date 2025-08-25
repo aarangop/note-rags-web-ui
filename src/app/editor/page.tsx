@@ -1,4 +1,4 @@
-import { MilkdownEditor } from "@/components/editor/mikdown-editor";
+import { MilkdownEditor } from "@/components/editor/milkdown-editor";
 
 export default function Editor() {
   return <MilkdownEditor></MilkdownEditor>;
