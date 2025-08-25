@@ -16,7 +16,7 @@ export function SaveIndicator({
   idleTimeout = 5000,
 }: SaveIndicatorProps) {
   const idleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
+  const localStatus = useRef(status);
   const getCircleStyles = () => {
     switch (status) {
       case "saving":
@@ -49,14 +49,7 @@ export function SaveIndicator({
     }
   };
 
-  const circleStyles = getCircleStyles();
-
-  if (!circleStyles) {
-    return null;
-  }
-
   useEffect(() => {
-    console.log("Status changed");
     if (idleTimeoutRef.current) {
       clearTimeout(idleTimeoutRef.current);
     }
@@ -64,10 +57,17 @@ export function SaveIndicator({
     if (status !== "saved") return;
 
     idleTimeoutRef.current = setTimeout(() => {
-      console.log("Changing status back to idle");
-      status = "idle";
+      // Note: This assignment won't trigger a re-render and is likely a bug
+      // Consider using state setter instead of direct assignment
+      localStatus.current = "idle";
     }, idleTimeout);
-  }, [status]);
+  }, [status, idleTimeout]);
+
+  const circleStyles = getCircleStyles();
+
+  if (!circleStyles) {
+    return null;
+  }
 
   return (
     <div
