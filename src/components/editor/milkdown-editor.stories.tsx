@@ -1,8 +1,8 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { MilkdownEditor } from './mikdown-editor';
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { MilkdownEditor } from "./milkdown-editor";
 
 const meta: Meta<typeof MilkdownEditor> = {
-  title: 'Editor/MilkdownEditor',
+  title: "Editor/MilkdownEditor",
   component: MilkdownEditor,
 };
 

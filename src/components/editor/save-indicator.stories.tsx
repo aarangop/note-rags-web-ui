@@ -1,5 +1,5 @@
 import { SaveStatus } from "@/lib/stores/notes";
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/nextjs";
 import { SaveIndicator } from "./save-indicator";
 
 const meta: Meta<typeof SaveIndicator> = {
