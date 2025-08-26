@@ -1,5 +1,6 @@
 import "@testing-library/jest-dom/vitest";
-import { afterAll, beforeAll, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, vi } from "vitest";
+import { server } from "./mocks/server";
 
 // Global test setup
 // Mock next-auth/react
@@ -17,6 +18,9 @@ const originalWarn = console.warn;
 const originalLog = console.log;
 
 beforeAll(() => {
+  // Start MSW server
+  server.listen({ onUnhandledRequest: 'error' });
+
   console.error = (...args: unknown[]) => {
     if (
       typeof args[0] === "string" &&
@@ -51,7 +55,15 @@ beforeAll(() => {
   };
 });
 
+afterEach(() => {
+  // Reset handlers after each test to ensure clean state
+  server.resetHandlers();
+});
+
 afterAll(() => {
+  // Clean up MSW server
+  server.close();
+
   console.error = originalError;
   console.warn = originalWarn;
   console.log = originalLog;
