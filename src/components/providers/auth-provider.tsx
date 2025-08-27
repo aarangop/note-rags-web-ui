@@ -1,7 +1,7 @@
 "use client";
+import useApiClient from "@/lib/hooks/use-api-client";
 import { useSession } from "next-auth/react";
-import React, { createContext, ReactNode, useContext, useEffect } from "react";
-import { useRepository } from "./repository-provider";
+import { createContext, ReactNode, useContext, useEffect } from "react";
 
 interface IAuthContext {
   token: string | null;
@@ -13,16 +13,16 @@ const AuthContext = createContext<IAuthContext | undefined>(undefined);
 
 export default function AuthProvider({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
-  const { notesRepository } = useRepository();
+  const { notesClient } = useApiClient();
 
   // Auto-sync token with API client when session changes
   useEffect(() => {
     if (session?.accessToken) {
-      notesRepository.setAuthToken(session.accessToken);
+      notesClient.setAuthToken(session.accessToken);
     } else {
-      notesRepository.removeAuthToken();
+      notesClient.removeAuthToken();
     }
-  }, [session, notesRepository]);
+  }, [session, notesClient]);
 
   const value = {
     token: session?.accessToken || null,

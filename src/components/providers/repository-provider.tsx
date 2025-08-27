@@ -4,7 +4,6 @@ import React, { createContext, useContext, useMemo } from "react";
 import { createApiClient } from "../../lib/api/client";
 import { API_CONFIG } from "../../lib/api/config";
 import type { INotesRepository } from "../../lib/api/interfaces/notes-repository.interface";
-import { NotesRepository } from "../../lib/api/repositories/notes-repository";
 
 interface RepositoryContext {
   notesRepository: INotesRepository;
