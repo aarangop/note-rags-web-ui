@@ -1,6 +1,10 @@
 import "@testing-library/jest-dom/vitest";
+import React from "react";
 import { afterAll, afterEach, beforeAll, vi } from "vitest";
 import { server } from "./mocks/server";
+
+// Make React globally available in tests
+global.React = React;
 
 // Global test setup
 // Mock next-auth/react
@@ -19,7 +23,7 @@ const originalLog = console.log;
 
 beforeAll(() => {
   // Start MSW server
-  server.listen({ onUnhandledRequest: 'error' });
+  server.listen({ onUnhandledRequest: "error" });
 
   console.error = (...args: unknown[]) => {
     if (
