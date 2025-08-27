@@ -2,6 +2,7 @@
 
 import { Crepe } from "@milkdown/crepe";
 import { Milkdown, MilkdownProvider, useEditor } from "@milkdown/react";
+import React from "react";
 
 interface MilkdownEditorProps {
   content?: string;
@@ -18,8 +19,15 @@ const CrepeEditor: React.FC<Omit<MilkdownEditorProps, "className">> = ({
   useEditor((root) => {
     const crepe = new Crepe({
       root,
-      defaultValue: content || placeholder,
-      features: {},
+      defaultValue: content || "",
+      features: {
+        [Crepe.Feature.Placeholder]: true,
+      },
+      featureConfigs: {
+        [Crepe.Feature.Placeholder]: {
+          text: placeholder,
+        },
+      },
     });
 
     crepe.on((listener) => {
@@ -39,7 +47,10 @@ export const MilkdownEditor: React.FC<MilkdownEditorProps> = ({
   ...props
 }) => {
   return (
-    <div className={`${className} overflow-y-auto`}>
+    <div
+      className={`${className} overflow-y-auto`}
+      data-testid="milkdown-editor"
+    >
       <div className="p-6 min-h-full">
         <MilkdownProvider>
           <CrepeEditor {...props} />
