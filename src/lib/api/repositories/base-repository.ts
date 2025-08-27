@@ -28,13 +28,6 @@ export abstract class BaseRepository {
     return result.data;
   }
 
-  setAuthToken(token: string) {
-    this.client.setAuthToken(token);
-  }
-  removeAuthToken() {
-    this.client.removeAuthToken();
-  }
-
   private extractErrorMessage(error: unknown): string {
     // Handle validation errors (422)
     if (error && typeof error === "object" && "detail" in error) {
