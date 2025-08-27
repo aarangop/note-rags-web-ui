@@ -2,7 +2,7 @@
 
 import { createContext, useContext } from "react";
 import { components } from "../api/notes/types";
-import { SaveStatus } from "../stores/notes";
+import { SaveStatus } from "../stores/notes-store";
 
 type Note = components["schemas"]["Note"];
 

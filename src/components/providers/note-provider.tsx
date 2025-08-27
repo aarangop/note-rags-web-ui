@@ -6,7 +6,7 @@ import {
   useNote,
   useUpdateNoteContent,
 } from "@/lib/hooks/use-notes";
-import { SaveStatus } from "@/lib/stores/notes";
+import { SaveStatus } from "@/lib/stores/notes-store";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 type Note = components["schemas"]["Note"];

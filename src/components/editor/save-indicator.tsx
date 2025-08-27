@@ -1,6 +1,6 @@
 "use client";
 
-import { SaveStatus } from "@/lib/stores/notes";
+import { SaveStatus } from "@/lib/stores/notes-store";
 import { cn } from "@/lib/utils";
 import { useEffect, useRef } from "react";
 

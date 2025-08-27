@@ -1,4 +1,4 @@
-import { SaveStatus } from "@/lib/stores/notes";
+import { SaveStatus } from "@/lib/stores/notes-store";
 import type { Meta, StoryObj } from "@storybook/nextjs";
 import { SaveIndicator } from "./save-indicator";
 
