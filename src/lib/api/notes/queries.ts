@@ -1,24 +1,25 @@
-import { 
-  useQuery, 
-  useMutation, 
+import {
+  useMutation,
+  useQuery,
   useQueryClient,
+  type UseMutationOptions,
   type UseQueryOptions,
-  type UseMutationOptions 
-} from '@tanstack/react-query';
-import type { 
+} from "@tanstack/react-query";
+import type {
   INotesRepository,
   Note,
   NoteCreate,
   NoteUpdate,
-  NotesPage
-} from '../interfaces/notes-repository.interface';
+  NotesPage,
+} from "../interfaces/notes-repository.interface";
 
 // Query Keys
 export const notesKeys = {
-  all: ['notes'] as const,
-  lists: () => [...notesKeys.all, 'list'] as const,
-  list: (page: number, size: number) => [...notesKeys.lists(), { page, size }] as const,
-  details: () => [...notesKeys.all, 'detail'] as const,
+  all: ["notes"] as const,
+  lists: () => [...notesKeys.all, "list"] as const,
+  list: (page: number, size: number) =>
+    [...notesKeys.lists(), { page, size }] as const,
+  details: () => [...notesKeys.all, "detail"] as const,
   detail: (id: number) => [...notesKeys.details(), id] as const,
 };
 
@@ -27,7 +28,7 @@ export const useNotes = (
   repository: INotesRepository,
   page: number = 1,
   size: number = 12,
-  options?: Omit<UseQueryOptions<NotesPage>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<NotesPage>, "queryKey" | "queryFn">
 ) => {
   return useQuery({
     queryKey: notesKeys.list(page, size),
@@ -40,7 +41,7 @@ export const useNotes = (
 export const useNote = (
   repository: INotesRepository,
   id: number,
-  options?: Omit<UseQueryOptions<Note>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<Note>, "queryKey" | "queryFn">
 ) => {
   return useQuery({
     queryKey: notesKeys.detail(id),
@@ -62,10 +63,10 @@ export const useCreateNote = (
     onSuccess: (newNote) => {
       // Invalidate and refetch notes lists
       queryClient.invalidateQueries({ queryKey: notesKeys.lists() });
-      
+
       // Add the new note to the cache
       queryClient.setQueryData(notesKeys.detail(newNote.id), newNote);
-      
+
       options?.onSuccess?.(newNote, {} as NoteCreate, undefined);
     },
     ...options,
@@ -75,8 +76,8 @@ export const useCreateNote = (
 export const useUpdateNote = (
   repository: INotesRepository,
   options?: UseMutationOptions<
-    Note, 
-    Error, 
+    Note,
+    Error,
     { id: number; update: NoteUpdate },
     { previousNote: Note | undefined }
   >
@@ -89,7 +90,7 @@ export const useUpdateNote = (
     { id: number; update: NoteUpdate },
     { previousNote: Note | undefined }
   >({
-    mutationFn: ({ id, update }: { id: number; update: NoteUpdate }) => 
+    mutationFn: ({ id, update }: { id: number; update: NoteUpdate }) =>
       repository.updateNote(id, update),
     onMutate: async ({ id, update }) => {
       // Cancel any outgoing refetches for this note
@@ -115,14 +116,17 @@ export const useUpdateNote = (
     onError: (err, variables, context) => {
       // Rollback on error
       if (context?.previousNote) {
-        queryClient.setQueryData(notesKeys.detail(variables.id), context.previousNote);
+        queryClient.setQueryData(
+          notesKeys.detail(variables.id),
+          context.previousNote
+        );
       }
       options?.onError?.(err, variables, context);
     },
     onSuccess: (updatedNote, variables) => {
       // Update the note in cache
       queryClient.setQueryData(notesKeys.detail(variables.id), updatedNote);
-      
+
       // Update notes in lists
       queryClient.setQueriesData<NotesPage>(
         { queryKey: notesKeys.lists() },
@@ -130,18 +134,20 @@ export const useUpdateNote = (
           if (!old?.items) return old;
           return {
             ...old,
-            items: old.items.map(note => 
+            items: old.items.map((note) =>
               note.id === variables.id ? updatedNote : note
             ),
           };
         }
       );
-      
+
       options?.onSuccess?.(updatedNote, variables, { previousNote: undefined });
     },
     onSettled: (data, error, variables) => {
       // Always refetch after settling to ensure consistency
-      queryClient.invalidateQueries({ queryKey: notesKeys.detail(variables.id) });
+      queryClient.invalidateQueries({
+        queryKey: notesKeys.detail(variables.id),
+      });
       options?.onSettled?.(data, error, variables, { previousNote: undefined });
     },
     ...options,
@@ -159,7 +165,7 @@ export const useDeleteNote = (
     onSuccess: (_, id) => {
       // Remove note from detail cache
       queryClient.removeQueries({ queryKey: notesKeys.detail(id) });
-      
+
       // Update notes lists by removing the deleted note
       queryClient.setQueriesData<NotesPage>(
         { queryKey: notesKeys.lists() },
@@ -167,7 +173,7 @@ export const useDeleteNote = (
           if (!old?.items) return old;
           return {
             ...old,
-            items: old.items.filter(note => note.id !== id),
+            items: old.items.filter((note) => note.id !== id),
             total: old.total - 1,
           };
         }
@@ -175,7 +181,7 @@ export const useDeleteNote = (
 
       // Invalidate lists to refetch and get accurate pagination
       queryClient.invalidateQueries({ queryKey: notesKeys.lists() });
-      
+
       options?.onSuccess?.(undefined, id, undefined);
     },
     ...options,
