@@ -38,7 +38,7 @@ export function useAutoSave(
   const clearError = useUIStore((state) => state.clearError);
   const getSaveStatus = useUIStore((state) => state.getSaveStatus);
   const getError = useUIStore((state) => state.getError);
-  
+
   // Get note for updated_at timestamp
   const getNote = useNotesStore((state) => state.getNote);
 
@@ -126,7 +126,7 @@ export function useAutoSave(
   }, [hasUnsavedChanges, queueSave, enabled]);
 
   const note = getNote(noteId);
-  
+
   return {
     saveStatus: getSaveStatus(noteId),
     lastSaved: note?.updated_at ? new Date(note.updated_at) : null,
