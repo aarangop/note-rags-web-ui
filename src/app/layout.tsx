@@ -1,6 +1,7 @@
 import Providers from "@/components/providers/providers";
 import "@milkdown/crepe/theme/common/style.css";
-import "@milkdown/crepe/theme/frame.css";
+import "../styles/crepe-nord.css";
+// import "../styles/crepe.css";
 import type { Metadata } from "next";
 import { Crimson_Text, Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
@@ -40,7 +41,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark" style={{ colorScheme: "dark" }}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${crimsonText.variable} antialiased`}
       >

@@ -1,6 +1,6 @@
 import "@milkdown/crepe/theme/common/style.css";
-import "@milkdown/crepe/theme/nord.css";
 import type { Preview } from "@storybook/nextjs-vite";
+import "../src/styles/crepe-nord.css";
 import "../src/app/globals.css";
 
 const preview: Preview = {
