@@ -9,17 +9,35 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { useNoteContext } from "@/lib/contexts/note-context";
 import { MoreHorizontalIcon, SaveIcon, TrashIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SaveIndicator } from "./save-indicator";
+import { SaveStatus } from "@/lib/services/auto-save-service.types";
 
 interface NoteHeaderProps {
+  note: any;
+  updateTitle: (title: string) => Promise<any>;
+  forceSave: () => Promise<void>;
+  deleteNote: () => Promise<void>;
+  saveStatus: SaveStatus;
   className?: string;
+  onDelete?: () => void;
 }
 
-export function NoteHeader({ className = "" }: NoteHeaderProps) {
-  const { note, updateTitle, saveNote, deleteNote, status } = useNoteContext();
+export function NoteHeader({ 
+  note, 
+  updateTitle, 
+  forceSave, 
+  deleteNote, 
+  saveStatus,
+  className = "", 
+  onDelete 
+}: NoteHeaderProps) {
+  
+  const handleDelete = async () => {
+    await deleteNote();
+    onDelete?.();
+  };
   const [isEditing, setIsEditing] = useState(false);
   const [editableTitle, setEditableTitle] = useState(note?.title || "");
 
@@ -60,7 +78,7 @@ export function NoteHeader({ className = "" }: NoteHeaderProps) {
             />
           ) : (
             <h1
-              className="text-xl font-semibold text-gray-900 cursor-pointer hover:text-gray-700 truncate font-heading"
+              className="text-xl font-semibold text-foreground cursor-pointer hover:text-muted-foreground truncate font-heading"
               onClick={() => setIsEditing(true)}
               title="Click to edit title"
             >
@@ -70,7 +88,7 @@ export function NoteHeader({ className = "" }: NoteHeaderProps) {
         </div>
 
         <div className="flex items-center space-x-4 ml-4">
-          <SaveIndicator status={status} />
+          <SaveIndicator status={saveStatus} />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -79,14 +97,14 @@ export function NoteHeader({ className = "" }: NoteHeaderProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={saveNote}>
+              <DropdownMenuItem onClick={forceSave}>
                 <SaveIcon className="h-4 w-4 mr-2" />
                 Save Note
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={deleteNote}
-                className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                onClick={handleDelete}
+                className="text-destructive focus:text-destructive focus:bg-destructive/10"
               >
                 <TrashIcon className="h-4 w-4 mr-2" />
                 Delete Note

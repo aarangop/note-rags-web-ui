@@ -1,7 +1,9 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { Crepe } from "@milkdown/crepe";
 import { Milkdown, MilkdownProvider, useEditor } from "@milkdown/react";
+import { useTheme } from "next-themes";
 import React from "react";
 
 interface MilkdownEditorProps {
@@ -16,28 +18,33 @@ const CrepeEditor: React.FC<Omit<MilkdownEditorProps, "className">> = ({
   placeholder = "Start writing...",
   onContentChange = () => {},
 }) => {
-  useEditor((root) => {
-    const crepe = new Crepe({
-      root,
-      defaultValue: content || "",
-      features: {
-        [Crepe.Feature.Placeholder]: true,
-      },
-      featureConfigs: {
-        [Crepe.Feature.Placeholder]: {
-          text: placeholder,
+  const { theme } = useTheme();
+
+  useEditor(
+    (root) => {
+      const crepe = new Crepe({
+        root,
+        defaultValue: content || "",
+        features: {
+          [Crepe.Feature.Placeholder]: true,
         },
-      },
-    });
-
-    crepe.on((listener) => {
-      listener.markdownUpdated((_, markdown) => {
-        onContentChange(markdown);
+        featureConfigs: {
+          [Crepe.Feature.Placeholder]: {
+            text: placeholder,
+          },
+        },
       });
-    });
 
-    return crepe;
-  });
+      crepe.on((listener) => {
+        listener.markdownUpdated((_, markdown) => {
+          onContentChange(markdown);
+        });
+      });
+
+      return crepe;
+    },
+    [content, placeholder, theme]
+  );
 
   return <Milkdown />;
 };
@@ -48,7 +55,11 @@ export const MilkdownEditor: React.FC<MilkdownEditorProps> = ({
 }) => {
   return (
     <div
-      className={`${className} overflow-y-auto`}
+      className={cn([
+        "crepe",
+        className,
+        "overflow-y-auto bg-note-editor-background",
+      ])}
       data-testid="milkdown-editor"
     >
       <div className="p-6 min-h-full">

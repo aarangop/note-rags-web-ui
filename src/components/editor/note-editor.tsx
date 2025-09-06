@@ -1,73 +1,49 @@
 "use client";
 
-import { useNoteContext } from "@/lib/contexts/note-context";
+import { useNoteEditor } from "@/lib/hooks/use-note-editor";
 import { MilkdownEditor } from "./milkdown-editor";
 import { NoteHeader } from "./note-header";
+import type { Note } from "@/lib/stores/notes-store.types";
 
 interface NoteEditorProps {
-  className?: string;
+  noteId: number;
+  initialNote: Note;
+  onDelete?: () => void;
 }
 
-export function NoteEditor({ className = "" }: NoteEditorProps) {
-  const { note, updateContent, placeholder, isLoading, error } =
-    useNoteContext();
+export function NoteEditor({ noteId, initialNote, onDelete }: NoteEditorProps) {
+  const {
+    note,
+    updateContent,
+    updateTitle,
+    deleteNote,
+    forceSave,
+    saveStatus,
+  } = useNoteEditor(noteId, initialNote);
 
-  if (isLoading) {
-    return (
-      <div
-        className={`flex h-full items-center justify-center bg-gray-50 ${className}`}
-      >
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading note...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div
-        className={`flex h-full items-center justify-center bg-gray-50 ${className}`}
-      >
-        <div className="text-center">
-          <p className="text-red-600 mb-4">
-            {error instanceof Error ? error.message : "Failed to load note"}
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!note) {
-    return (
-      <div
-        className={`flex h-full items-center justify-center bg-gray-50 ${className}`}
-      >
-        <div className="text-center">
-          <p className="text-gray-600">Note not found</p>
-        </div>
-      </div>
-    );
-  }
+  const handleDelete = async () => {
+    await deleteNote();
+    onDelete?.();
+  };
 
   return (
-    <div className={`flex h-full flex-col bg-gray-50 ${className}`}>
+    <div className={`flex h-full flex-col`}>
       {/* Note Header */}
-      <NoteHeader />
+      <NoteHeader
+        note={note}
+        updateTitle={updateTitle}
+        forceSave={forceSave}
+        deleteNote={deleteNote}
+        saveStatus={saveStatus}
+        onDelete={handleDelete}
+      />
 
       {/* Main Editor Area with Paper Design */}
       <div className="flex-1 px-6 py-2 overflow-hidden">
-        <div className="h-full bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="h-full bg-note-editor-surface rounded-lg shadow-sm border border-border overflow-hidden">
           <MilkdownEditor
-            content={note.content}
-            placeholder={placeholder}
+            content={initialNote.content}
+            placeholder="Start writing your note..."
             onContentChange={updateContent}
             className="h-full"
           />
