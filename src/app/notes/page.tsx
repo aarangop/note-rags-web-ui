@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useCreateNoteWithDefaults, useNotes } from "@/lib/hooks/use-notes";
-import { useNotesUIStore } from "@/lib/stores/notes-store";
 import {
   CalendarIcon,
   FileTextIcon,
@@ -18,12 +17,11 @@ import { useMemo, useState } from "react";
 
 export default function NotesPage() {
   const router = useRouter();
-  const { searchQuery, setSearchQuery } = useNotesUIStore();
 
   // Use React Query for server data
   const { data: notesData, isLoading, error } = useNotes(1, 100); // Load more notes for client-side filtering
   const createNoteMutation = useCreateNoteWithDefaults();
-
+  const [searchQuery, setSearchQuery] = useState<string>("")
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
@@ -31,7 +29,6 @@ export default function NotesPage() {
 
   // Filter notes based on search query
   const filteredNotes = useMemo(() => {
-    if (!searchQuery) return notes;
     return notes.filter(
       (note) =>
         note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -84,7 +81,7 @@ export default function NotesPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <p className="text-red-600 mb-4">
+          <p className="text-destructive mb-4">
             {error instanceof Error ? error.message : "Failed to load notes"}
           </p>
           <Button onClick={() => window.location.reload()}>Try Again</Button>
@@ -99,8 +96,8 @@ export default function NotesPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Note-Rags</h1>
-            <p className="mt-2 text-gray-600">
+            <h1 className="text-3xl font-bold text-foreground">Note-Rags</h1>
+            <p className="mt-2 text-muted-foreground">
               Manage and explore your knowledge base
             </p>
           </div>
@@ -118,8 +115,8 @@ export default function NotesPage() {
         // Loading State
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading your notes...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading your notes...</p>
           </div>
         </div>
       ) : (
@@ -129,14 +126,14 @@ export default function NotesPage() {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
-                    <FileTextIcon className="h-6 w-6 text-blue-600" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                    <FileTextIcon className="h-6 w-6 text-primary" />
                   </div>
                   <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">
+                    <p className="text-sm font-medium text-muted-foreground">
                       Total Notes
                     </p>
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-2xl font-bold text-foreground">
                       {stats.total}
                     </p>
                   </div>
@@ -147,14 +144,14 @@ export default function NotesPage() {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-500/10">
                     <CalendarIcon className="h-6 w-6 text-green-600" />
                   </div>
                   <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">
+                    <p className="text-sm font-medium text-muted-foreground">
                       This Week
                     </p>
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-2xl font-bold text-foreground">
                       {stats.thisWeek}
                     </p>
                   </div>
@@ -165,14 +162,14 @@ export default function NotesPage() {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-500/10">
                     <CalendarIcon className="h-6 w-6 text-purple-600" />
                   </div>
                   <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">
+                    <p className="text-sm font-medium text-muted-foreground">
                       This Month
                     </p>
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-2xl font-bold text-foreground">
                       {stats.thisMonth}
                     </p>
                   </div>
@@ -183,14 +180,14 @@ export default function NotesPage() {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-500/10">
                     <FileTextIcon className="h-6 w-6 text-orange-600" />
                   </div>
                   <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">
+                    <p className="text-sm font-medium text-muted-foreground">
                       Last Updated
                     </p>
-                    <p className="text-sm font-bold text-gray-900">
+                    <p className="text-sm font-bold text-foreground">
                       {stats.lastUpdated
                         ? new Date(stats.lastUpdated).toLocaleDateString()
                         : "Never"}
@@ -204,7 +201,7 @@ export default function NotesPage() {
           {/* Search and Filters */}
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="relative max-w-md flex-1">
-              <SearchIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+              <SearchIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -221,7 +218,7 @@ export default function NotesPage() {
                 <FunnelIcon className="h-4 w-4" />
                 <span>Filter</span>
               </Button>
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-muted-foreground">
                 Showing {paginatedNotes.length} of {filteredNotes.length} notes
               </span>
             </div>
@@ -230,11 +227,11 @@ export default function NotesPage() {
           {/* Notes Grid */}
           {filteredNotes.length === 0 ? (
             <div className="py-12 text-center">
-              <FileTextIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
+              <FileTextIcon className="mx-auto h-12 w-12 text-muted-foreground" />
+              <h3 className="mt-2 text-sm font-medium text-foreground">
                 No notes found
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-muted-foreground">
                 {searchQuery
                   ? "Try adjusting your search query."
                   : "Get started by creating your first note."}
@@ -290,7 +287,7 @@ export default function NotesPage() {
                       page === currentPage + 2
                     ) {
                       return (
-                        <span key={page} className="px-2 text-gray-400">
+                        <span key={page} className="px-2 text-muted-foreground">
                           ...
                         </span>
                       );
