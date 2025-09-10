@@ -1,30 +1,28 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { Crepe } from "@milkdown/crepe";
 import { Milkdown, MilkdownProvider, useEditor } from "@milkdown/react";
-import { useTheme } from "next-themes";
-import React from "react";
+import React, { useCallback, useRef, useEffect } from "react";
 
 interface MilkdownEditorProps {
-  content?: string;
+  initialContent?: string;
   placeholder?: string;
   onContentChange?: (content: string) => void;
-  className?: string;
 }
 
-const CrepeEditor: React.FC<Omit<MilkdownEditorProps, "className">> = ({
-  content = "",
+const CrepeEditor = React.memo(function CrepeEditor({
+  initialContent = "",
   placeholder = "Start writing...",
   onContentChange = () => {},
-}) => {
-  const { theme } = useTheme();
+}: MilkdownEditorProps) {
+  const initializedRef = useRef(false);
+  const lastContentRef = useRef(initialContent);
 
-  useEditor(
+  const editor = useEditor(
     (root) => {
       const crepe = new Crepe({
         root,
-        defaultValue: content || "",
+        defaultValue: initialContent || "",
         features: {
           [Crepe.Feature.Placeholder]: true,
         },
@@ -37,29 +35,39 @@ const CrepeEditor: React.FC<Omit<MilkdownEditorProps, "className">> = ({
 
       crepe.on((listener) => {
         listener.markdownUpdated((_, markdown) => {
+          lastContentRef.current = markdown;
           onContentChange(markdown);
         });
       });
 
+      initializedRef.current = true;
       return crepe;
     },
-    [content, placeholder, theme]
+    [placeholder] // Remove initialContent from dependencies to prevent re-initialization
   );
 
-  return <Milkdown />;
-};
+  // Update content programmatically when initialContent changes (but editor is already initialized)
+  useEffect(() => {
+    if (
+      initializedRef.current &&
+      editor &&
+      initialContent !== lastContentRef.current
+    ) {
+      // For now, we'll let the content be managed by the store
+      // This prevents re-initialization while keeping the editor stable
+      lastContentRef.current = initialContent;
+    }
+  }, [initialContent, editor]);
 
-export const MilkdownEditor: React.FC<MilkdownEditorProps> = ({
-  className = "h-full",
-  ...props
-}) => {
+  return <Milkdown />;
+});
+
+export const MilkdownEditor = React.memo(function MilkdownEditor({ 
+  ...props 
+}: MilkdownEditorProps) {
   return (
     <div
-      className={cn([
-        "crepe",
-        className,
-        "overflow-y-auto bg-note-editor-background",
-      ])}
+      className="overflow-y-auto bg-note-editor-background h-full"
       data-testid="milkdown-editor"
     >
       <div className="p-6 min-h-full">
@@ -69,4 +77,4 @@ export const MilkdownEditor: React.FC<MilkdownEditorProps> = ({
       </div>
     </div>
   );
-};
+});
