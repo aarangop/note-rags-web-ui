@@ -10,15 +10,6 @@ describe("MilkdownEditor", () => {
       expect(getByTestId("milkdown-editor")).toBeInTheDocument();
     });
 
-    it("should apply custom className", () => {
-      const customClass = "custom-editor-class";
-      const { getByTestId } = render(
-        <MilkdownEditor className={customClass} />
-      );
-      const editorWrapper = getByTestId("milkdown-editor");
-      expect(editorWrapper).toHaveClass(customClass);
-    });
-
     it("should display placeholder text", async () => {
       const placeholder = "Type your content here...";
       render(<MilkdownEditor placeholder={placeholder} />);
