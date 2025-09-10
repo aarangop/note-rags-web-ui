@@ -1,20 +1,12 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { MoreHorizontalIcon, SaveIcon, TrashIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SaveIndicator } from "./save-indicator";
+import { NoteActionsDropdown } from "./note-actions-dropdown";
 import { SaveStatus } from "@/lib/types/save-status.types";
 
-interface NoteHeaderProps {
+export interface NoteHeaderProps {
   note: { id: number; title: string; content: string } | null;
   onTitleChanged: (title: string) => void;
   onNoteSave: () => void;
@@ -83,31 +75,11 @@ export function NoteHeader({
 
         <div className="flex items-center space-x-4 ml-4">
           <SaveIndicator status={saveStatus} />
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
-                <MoreHorizontalIcon className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem
-                onClick={onNoteSave}
-                disabled={saveStatus === "saved"}
-              >
-                <SaveIcon className="h-4 w-4 mr-2" />
-                Save Note (Ctrl+S)
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={onNoteDelete}
-                className="text-destructive focus:text-destructive focus:bg-destructive/10"
-              >
-                <TrashIcon className="h-4 w-4 mr-2" />
-                Delete Note
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <NoteActionsDropdown
+            onNoteSave={onNoteSave}
+            onNoteDelete={onNoteDelete}
+            saveStatus={saveStatus}
+          />
         </div>
       </div>
     </header>

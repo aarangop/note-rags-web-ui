@@ -1,4 +1,3 @@
-import { RepositoryProvider } from "@/components/providers/repository-provider";
 import type { INotesRepository } from "@/lib/api/interfaces/notes-repository.interface";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, RenderOptions } from "@testing-library/react";
@@ -8,6 +7,7 @@ import React, { ReactElement } from "react";
 import { vi } from "vitest";
 
 // Test utilities for mocking providers and common testing patterns
+// Updated for store-based architecture (no longer uses RepositoryProvider)
 
 interface TestProviderOptions {
   queryClient?: QueryClient;
