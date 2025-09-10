@@ -1,109 +1,132 @@
-import { useCallback, useEffect, useRef } from "react";
-import { useRepository } from "../../components/providers/repository-provider";
-import { useAutoSave } from "./use-auto-save";
-import { useNoteOperations } from "./use-note-operations";
+import { useMemo, useCallback } from "react";
+import { components } from "../api/notes/types";
 import { useNotesStore } from "../stores";
-import type { AutoSaveConfig } from "../services/auto-save-service.types";
-import type { Note } from "../stores/notes-store.types";
+import { SaveStatus } from "../types/save-status.types";
+import { useDebouncedCallback } from "./use-debounced-callback";
+import { useDeleteNote, useNote, useUpdateNote } from "./use-notes";
 
-interface UseNoteEditorOptions {
-  autoSave?: {
-    enabled?: boolean;
-    config?: Partial<AutoSaveConfig>;
-  };
+type Note = components["schemas"]["Note"];
+
+interface UseNoteEditorReturn {
+  note: Note | undefined;
+  isLoading: boolean;
+  error?: Error | null;
+  saveStatus: SaveStatus;
+  handleContentChange: (newContent: string) => void;
+  handleNoteSave: () => void;
+  handleTitleChanged: (newTitle: string) => Promise<void>;
+  handleDelete: () => void;
 }
 
-export function useNoteEditor(
-  noteId: number,
-  initialNote: Note,
-  options: UseNoteEditorOptions = {}
-) {
-  const { autoSave = { enabled: true } } = options;
+interface UseNoteEditorProps {
+  noteId: number;
+  autoSaveEnabled?: boolean;
+  onNoteDeleted?: () => void;
+}
 
-  const { notesRepository } = useRepository();
+export default function useNoteEditor({
+  noteId,
+  autoSaveEnabled = true,
+  onNoteDeleted = () => {},
+}: UseNoteEditorProps): UseNoteEditorReturn {
+  const {
+    data: note,
+    isLoading: fetchIsLoading,
+    error: fetchError,
+  } = useNote(noteId);
 
-  // Initialize store with the initial note
-  const setNote = useNotesStore((state) => state.setNote);
-  const updateContentStore = useNotesStore((state) => state.updateContent);
-  const selectNote = useNotesStore((state) => state.selectNote);
-  
-  // Track what we've initialized to avoid overwriting user edits
-  const initializedRef = useRef<number | null>(null);
+  const saveStatus = useNotesStore((state) => state.getNoteStatus(noteId));
 
-  useEffect(() => {
-    // Only initialize if we haven't initialized this specific note yet
-    if (initializedRef.current !== noteId) {
-      setNote(initialNote);
-      updateContentStore(noteId, initialNote.content);
-      initializedRef.current = noteId;
+  const saveNoteMutation = useUpdateNote();
+  const deleteNoteMutation = useDeleteNote();
+  const { updateContent, getCurrentContent, setNoteStatus } = useNotesStore();
+
+  // Stabilize note object to prevent unnecessary re-renders
+  // Only create new reference when content actually changes
+  const stableNote = useMemo(() => {
+    if (!note) return undefined;
+    
+    // Get current content from store
+    const currentContent = getCurrentContent(noteId);
+    
+    // If store has content and it differs from fetched note, prioritize store content
+    // This prevents re-renders when local changes are newer than fetched data
+    const effectiveContent = currentContent || note.content;
+    
+    // Only create new object if content actually differs
+    if (effectiveContent === note.content) {
+      return note; // Return original reference to prevent re-renders
     }
-  }, [setNote, updateContentStore, noteId, initialNote]);
+    
+    return {
+      ...note,
+      content: effectiveContent,
+    };
+  }, [note, getCurrentContent, noteId]);
 
-  const { updateTitle, deleteNote, createNote, mutations } =
-    useNoteOperations();
+  // Unified loading state: true if any operation is in progress
+  // Exclude saves since we have optimistic updates - only show loading for initial fetch and deletes
+  const isLoading =
+    (fetchIsLoading && !note) || // Only show loading on initial fetch, not refetch
+    deleteNoteMutation.isPending; // Only show loading for deletes (destructive operation)
 
-  const autoSaveResult = useAutoSave(noteId, {
-    repository: notesRepository,
-    config: autoSave.config,
-    enabled: autoSave.enabled,
-  });
+  // Unified error state: prioritize fetch error, then save error, then delete error
+  const error =
+    fetchError || saveNoteMutation.error || deleteNoteMutation.error;
 
-  // Make these reactive to store changes
-  const currentContent = useNotesStore((state) => {
-    const editingContent = state.editingContent.get(noteId);
-    if (editingContent !== undefined) return editingContent;
+  const handleNoteSave = useCallback(async () => {
+    setNoteStatus(noteId, "saving");
+    try {
+      await saveNoteMutation.mutateAsync({
+        id: noteId,
+        update: { content: getCurrentContent(noteId) },
+      });
+      setNoteStatus(noteId, "saved");
+    } catch (error) {
+      setNoteStatus(noteId, "error");
+      throw error; // Re-throw to expose in unified error state
+    }
+  }, [noteId, saveNoteMutation, getCurrentContent, setNoteStatus]);
 
-    const note = state.notes.get(noteId);
-    return note?.content || "";
-  });
+  const [debouncedSave] = useDebouncedCallback(handleNoteSave, 2000, [
+    handleNoteSave,
+  ]);
 
-  const hasChanges = useNotesStore((state) => {
-    const editingContent = state.editingContent.get(noteId);
-    const note = state.notes.get(noteId);
+  const handleContentChange = useCallback((newContent: string) => {
+    setNoteStatus(noteId, "unsaved");
+    updateContent(noteId, newContent);
+    if (autoSaveEnabled) {
+      debouncedSave();
+    }
+  }, [noteId, setNoteStatus, updateContent, autoSaveEnabled, debouncedSave]);
 
-    if (!editingContent || !note) return false;
-    return editingContent !== note.content;
-  });
+  const handleTitleChanged = useCallback(async (newTitle: string) => {
+    setNoteStatus(noteId, "saving");
+    try {
+      await saveNoteMutation.mutateAsync({
+        id: noteId,
+        update: { title: newTitle },
+      });
+      setNoteStatus(noteId, "saved");
+    } catch (error) {
+      setNoteStatus(noteId, "error");
+      throw error; // Re-throw to expose in unified error state
+    }
+  }, [noteId, saveNoteMutation, setNoteStatus]);
 
-
-  const handleUpdateContent = useCallback(
-    (content: string) => {
-      updateContentStore(noteId, content);
-    },
-    [updateContentStore, noteId]
-  );
-
-  const handleUpdateTitle = useCallback(
-    (title: string) => {
-      return updateTitle(noteId, title);
-    },
-    [updateTitle, noteId]
-  );
-
-  const handleDeleteNote = useCallback(() => {
-    return deleteNote(noteId);
-  }, [deleteNote, noteId]);
-
-  const selectThisNote = useCallback(() => {
-    selectNote(noteId);
-  }, [selectNote, noteId]);
+  const handleDelete = useCallback(async () => {
+    await deleteNoteMutation.mutateAsync(noteId);
+    onNoteDeleted();
+  }, [deleteNoteMutation, noteId, onNoteDeleted]);
 
   return {
-    note: initialNote,
-    content: currentContent,
-    error: autoSaveResult.error,
-    hasUnsavedChanges: hasChanges,
-
-    updateContent: handleUpdateContent,
-    updateTitle: handleUpdateTitle,
-    deleteNote: handleDeleteNote,
-    createNote,
-    selectNote: selectThisNote,
-
-    saveStatus: autoSaveResult.saveStatus,
-    lastSaved: autoSaveResult.lastSaved,
-    forceSave: autoSaveResult.forceSave,
-
-    mutations,
+    note: stableNote,
+    isLoading,
+    error,
+    saveStatus,
+    handleContentChange,
+    handleNoteSave,
+    handleTitleChanged,
+    handleDelete,
   };
 }
