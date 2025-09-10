@@ -1,8 +1,12 @@
 "use client";
 
 import { NoteEditor } from "@/components/editor/note-editor";
+import { Saving } from "@/components/editor/note-editor.stories";
 import { components } from "@/lib/api/notes/types";
-import { useNoteSync } from "@/lib/hooks/use-note-sync";
+import useNoteEditor from "@/lib/hooks/use-note-editor";
+import { useDeleteNote, useNote } from "@/lib/hooks/use-notes";
+import useSaveNote from "@/lib/hooks/use-save-note";
+import { useNotesStore } from "@/lib/stores";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 
@@ -11,25 +15,30 @@ interface NotePageProps {
     id: string;
   }>;
 }
+
 type Note = components["schemas"]["Note"];
 export default function NotePage({ params }: NotePageProps) {
+  // Router to redirect user on note deletion
   const router = useRouter();
+  // Extract note id from url params
   const { id } = use(params);
   const noteId = parseInt(id);
-
-  const [initialNote, setInitialNote] = useState<Note | null>(null);
-
-  const { note, isLoading, error } = useNoteSync(noteId);
-
-  useEffect(() => {
-    if (!initialNote && note) {
-      setInitialNote(note);
-    }
-  }, [note]);
-
-  const handleDelete = () => {
-    router.push("/notes");
+  // Callback for when the note has been deleted
+  const onNoteDeleted = () => {
+    router.push("../notes");
   };
+
+  // Consume methods from the useNoteEditor hook
+  const {
+    note,
+    isLoading,
+    error,
+    saveStatus,
+    handleContentChange,
+    handleDelete,
+    handleNoteSave,
+    handleTitleChanged,
+  } = useNoteEditor({ noteId, onNoteDeleted });
 
   if (isLoading) {
     return (
@@ -64,7 +73,7 @@ export default function NotePage({ params }: NotePageProps) {
     );
   }
 
-  if (!note || !initialNote) {
+  if (!note) {
     return (
       <div className="h-[calc(100vh-6rem)] max-w-4xl mx-auto px-4 flex flex-col">
         <div className="flex-1 pt-4 min-h-0 flex items-center justify-center">
@@ -80,9 +89,12 @@ export default function NotePage({ params }: NotePageProps) {
     <div className="h-[calc(100vh-6rem)] max-w-4xl mx-auto px-4 flex flex-col">
       <div className="flex-1 pt-4 min-h-0">
         <NoteEditor
-          noteId={noteId}
-          initialNote={initialNote}
+          saveStatus={saveStatus}
+          note={note}
           onDelete={handleDelete}
+          onContentChanged={handleContentChange}
+          onNoteSave={handleNoteSave}
+          onTitleChanged={handleTitleChanged}
         />
       </div>
     </div>
