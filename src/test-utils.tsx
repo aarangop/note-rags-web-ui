@@ -12,9 +12,6 @@ import { vi } from "vitest";
 interface TestProviderOptions {
   queryClient?: QueryClient;
   session?: Session | null;
-  repositories?: {
-    notesRepository?: INotesRepository;
-  };
 }
 
 // Create a test wrapper with all necessary providers
@@ -39,16 +36,11 @@ function TestProviders({
       },
     }),
     session = null,
-    repositories,
   } = options;
 
   return (
     <SessionProvider session={session}>
-      <QueryClientProvider client={queryClient}>
-        <RepositoryProvider repositories={repositories}>
-          {children}
-        </RepositoryProvider>
-      </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </SessionProvider>
   );
 }

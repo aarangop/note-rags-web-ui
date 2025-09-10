@@ -1,46 +1,52 @@
-import { http, HttpResponse } from 'msw';
-import type { Note, NoteCreate, NoteUpdate, NotesPage, UserResponse } from '@/lib/api/interfaces/notes-repository.interface';
+import { http, HttpResponse } from "msw";
+import type {
+  Note,
+  NoteCreate,
+  NoteUpdate,
+  NotesPage,
+} from "@/lib/api/interfaces/notes-repository.interface";
 
-const MOCK_USER_ID = 'test-user-123';
-const API_BASE = 'http://localhost:8003';
+const MOCK_USER_ID = "test-user-123";
+const API_BASE = "http://localhost:8003";
 
 const mockNotes: Note[] = [
   {
     id: 1,
-    title: 'Test Note 1',
-    content: 'This is the content of test note 1. It has some basic markdown content.',
-    file_path: '/notes/test-note-1.md',
-    document_type: 'note' as const,
+    title: "Test Note 1",
+    content:
+      "This is the content of test note 1. It has some basic markdown content.",
+    file_path: "/notes/test-note-1.md",
+    document_type: "note" as const,
     user_id: MOCK_USER_ID,
-    metadata: { tags: ['test', 'example'] },
-    created_at: '2024-01-01T10:00:00Z',
-    updated_at: '2024-01-01T10:00:00Z',
+    metadata: { tags: ["test", "example"] },
+    created_at: "2024-01-01T10:00:00Z",
+    updated_at: "2024-01-01T10:00:00Z",
   },
   {
     id: 2,
-    title: 'Test Note 2',
-    content: 'This is another test note with different content.',
-    file_path: '/notes/test-note-2.md',
-    document_type: 'note' as const,
+    title: "Test Note 2",
+    content: "This is another test note with different content.",
+    file_path: "/notes/test-note-2.md",
+    document_type: "note" as const,
     user_id: MOCK_USER_ID,
-    metadata: { tags: ['test'] },
-    created_at: '2024-01-02T10:00:00Z',
-    updated_at: '2024-01-02T10:00:00Z',
+    metadata: { tags: ["test"] },
+    created_at: "2024-01-02T10:00:00Z",
+    updated_at: "2024-01-02T10:00:00Z",
   },
 ];
 
 const mockUser: UserResponse = {
   id: MOCK_USER_ID,
-  cognito_user_id: 'cognito-test-user-123',
-  email: 'test@example.com',
-  username: 'testuser',
-  full_name: 'Test User',
+  cognito_user_id: "cognito-test-user-123",
+  email: "test@example.com",
+  username: "testuser",
+  full_name: "Test User",
   is_active: true,
   is_verified: true,
   is_profile_complete: true,
-  created_at: '2024-01-01T09:00:00Z',
-  updated_at: '2024-01-01T09:00:00Z',
-  last_login_at: '2024-01-01T10:00:00Z',
+  created_at: "2024-01-01T09:00:00Z",
+  updated_at: "2024-01-01T09:00:00Z",
+  last_login_at: "2024-01-01T10:00:00Z",
 };
 
 let noteIdCounter = mockNotes.length + 1;
@@ -48,14 +54,14 @@ let noteIdCounter = mockNotes.length + 1;
 export const handlers = [
   // Health check
   http.get(`${API_BASE}/health/`, () => {
-    return HttpResponse.json({ status: 'ok' });
+    return HttpResponse.json({ status: "ok" });
   }),
 
   // Get notes (paginated)
   http.get(`${API_BASE}/notes/`, ({ request }) => {
     const url = new URL(request.url);
-    const page = parseInt(url.searchParams.get('page') || '1');
-    const size = parseInt(url.searchParams.get('size') || '20');
+    const page = parseInt(url.searchParams.get("page") || "1");
+    const size = parseInt(url.searchParams.get("size") || "20");
 
     const startIndex = (page - 1) * size;
     const endIndex = startIndex + size;
@@ -75,13 +81,10 @@ export const handlers = [
   // Get note by ID
   http.get(`${API_BASE}/notes/:id`, ({ params }) => {
     const id = parseInt(params.id as string);
-    const note = mockNotes.find(n => n.id === id);
-    
+    const note = mockNotes.find((n) => n.id === id);
+
     if (!note) {
-      return HttpResponse.json(
-        { detail: 'Note not found' },
-        { status: 404 }
-      );
+      return HttpResponse.json({ detail: "Note not found" }, { status: 404 });
     }
 
     return HttpResponse.json(note);
@@ -89,8 +92,8 @@ export const handlers = [
 
   // Create note
   http.post(`${API_BASE}/notes/`, async ({ request }) => {
-    const noteCreate = await request.json() as NoteCreate;
-    
+    const noteCreate = (await request.json()) as NoteCreate;
+
     const newNote: Note = {
       id: noteIdCounter++,
       ...noteCreate,
@@ -106,14 +109,11 @@ export const handlers = [
   // Update note
   http.put(`${API_BASE}/notes/:id`, async ({ params, request }) => {
     const id = parseInt(params.id as string);
-    const noteUpdate = await request.json() as NoteUpdate;
-    const noteIndex = mockNotes.findIndex(n => n.id === id);
-    
+    const noteUpdate = (await request.json()) as NoteUpdate;
+    const noteIndex = mockNotes.findIndex((n) => n.id === id);
+
     if (noteIndex === -1) {
-      return HttpResponse.json(
-        { detail: 'Note not found' },
-        { status: 404 }
-      );
+      return HttpResponse.json({ detail: "Note not found" }, { status: 404 });
     }
 
     const existingNote = mockNotes[noteIndex];
@@ -130,13 +130,10 @@ export const handlers = [
   // Delete note
   http.delete(`${API_BASE}/notes/:id`, ({ params }) => {
     const id = parseInt(params.id as string);
-    const noteIndex = mockNotes.findIndex(n => n.id === id);
-    
+    const noteIndex = mockNotes.findIndex((n) => n.id === id);
+
     if (noteIndex === -1) {
-      return HttpResponse.json(
-        { detail: 'Note not found' },
-        { status: 404 }
-      );
+      return HttpResponse.json({ detail: "Note not found" }, { status: 404 });
     }
 
     mockNotes.splice(noteIndex, 1);
@@ -181,31 +178,34 @@ export const mockHelpers = {
     mockNotes.push(
       {
         id: 1,
-        title: 'Test Note 1',
-        content: 'This is the content of test note 1. It has some basic markdown content.',
-        file_path: '/notes/test-note-1.md',
-        document_type: 'note' as const,
+        title: "Test Note 1",
+        content:
+          "This is the content of test note 1. It has some basic markdown content.",
+        file_path: "/notes/test-note-1.md",
+        document_type: "note" as const,
         user_id: MOCK_USER_ID,
-        metadata: { tags: ['test', 'example'] },
-        created_at: '2024-01-01T10:00:00Z',
-        updated_at: '2024-01-01T10:00:00Z',
+        metadata: { tags: ["test", "example"] },
+        created_at: "2024-01-01T10:00:00Z",
+        updated_at: "2024-01-01T10:00:00Z",
       },
       {
         id: 2,
-        title: 'Test Note 2',
-        content: 'This is another test note with different content.',
-        file_path: '/notes/test-note-2.md',
-        document_type: 'note' as const,
+        title: "Test Note 2",
+        content: "This is another test note with different content.",
+        file_path: "/notes/test-note-2.md",
+        document_type: "note" as const,
         user_id: MOCK_USER_ID,
-        metadata: { tags: ['test'] },
-        created_at: '2024-01-02T10:00:00Z',
-        updated_at: '2024-01-02T10:00:00Z',
+        metadata: { tags: ["test"] },
+        created_at: "2024-01-02T10:00:00Z",
+        updated_at: "2024-01-02T10:00:00Z",
       }
     );
     noteIdCounter = 3;
   },
 
-  addNote: (note: Omit<Note, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
+  addNote: (
+    note: Omit<Note, "id" | "user_id" | "created_at" | "updated_at">
+  ) => {
     const newNote: Note = {
       id: noteIdCounter++,
       ...note,
