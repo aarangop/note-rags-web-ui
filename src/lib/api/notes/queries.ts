@@ -47,6 +47,8 @@ export const useNote = (
     queryKey: notesKeys.detail(id),
     queryFn: () => repository.getNoteById(id),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false, // Prevent refetch on window focus
+    refetchOnReconnect: false, // Prevent refetch on reconnect
     ...options,
   });
 };
@@ -144,10 +146,12 @@ export const useUpdateNote = (
       options?.onSuccess?.(updatedNote, variables, { previousNote: undefined });
     },
     onSettled: (data, error, variables) => {
-      // Always refetch after settling to ensure consistency
-      queryClient.invalidateQueries({
-        queryKey: notesKeys.detail(variables.id),
-      });
+      // Only refetch on error to ensure consistency when optimistic update failed
+      if (error) {
+        queryClient.invalidateQueries({
+          queryKey: notesKeys.detail(variables.id),
+        });
+      }
       options?.onSettled?.(data, error, variables, { previousNote: undefined });
     },
     ...options,
