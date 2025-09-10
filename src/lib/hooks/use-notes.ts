@@ -1,5 +1,5 @@
-import { useRepository } from "../../components/providers/repository-provider";
 import type {
+  INotesRepository,
   NoteCreate,
   NoteUpdate,
 } from "../api/interfaces/notes-repository.interface";
@@ -10,30 +10,31 @@ import {
   useNotes as useNotesQuery,
   useUpdateNote as useUpdateNoteMutation,
 } from "../api/notes/queries";
+import useNotesRepository from "./use-notes-repository";
 
 // Custom hooks that automatically inject the repository
 export const useNotes = (page: number = 1, size: number = 12) => {
-  const { notesRepository } = useRepository();
+  const notesRepository = useNotesRepository();
   return useNotesQuery(notesRepository, page, size);
 };
 
 export const useNote = (id: number) => {
-  const { notesRepository } = useRepository();
+  const notesRepository = useNotesRepository();
   return useNoteQuery(notesRepository, id);
 };
 
 export const useCreateNote = () => {
-  const { notesRepository } = useRepository();
+  const notesRepository = useNotesRepository();
   return useCreateNoteMutation(notesRepository);
 };
 
 export const useUpdateNote = () => {
-  const { notesRepository } = useRepository();
+  const notesRepository = useNotesRepository();
   return useUpdateNoteMutation(notesRepository);
 };
 
 export const useDeleteNote = () => {
-  const { notesRepository } = useRepository();
+  const notesRepository = useNotesRepository();
   return useDeleteNoteMutation(notesRepository);
 };
 

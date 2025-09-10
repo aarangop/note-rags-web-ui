@@ -1,5 +1,5 @@
 import { components } from "../api/notes/types";
-import { SaveStatus } from "../services/auto-save-service.types";
+import { SaveStatus } from "../types/save-status.types";
 
 export type Note = components["schemas"]["Note"];
 
@@ -9,10 +9,12 @@ export interface NotesStore {
   notes: Map<number, Note>;
   selectedNoteId: number | null;
   editingContent: Map<number, string>;
+  notesStatus: Map<number, SaveStatus>;
 
   // === ACTIONS ===
   setNote: (note: Note) => void;
   setNotes: (notes: Note[]) => void;
+  setNoteStatus: (id: number, status: SaveStatus) => void;
   updateContent: (id: number, content: string) => void;
   selectNote: (id: number) => void;
   clearNote: (id: number) => void;
@@ -20,25 +22,23 @@ export interface NotesStore {
 
   // === SELECTORS ===
   getNote: (id: number) => Note | undefined;
+  getNoteStatus: (id: number) => SaveStatus;
   getSelectedNote: () => Note | undefined;
   getCurrentContent: (id: number) => string;
   hasUnsavedChanges: (id: number) => boolean;
   getAllNotes: () => Note[];
 }
 
-// UI Store interface (minimal)
+// UI Store interface (minimal) - simplified for manual save
 export interface UIStore {
   // === STATE ===
-  saveStatus: Map<number, SaveStatus>;
   errors: Map<number, string>;
 
   // === ACTIONS ===
-  setSaveStatus: (id: number, status: SaveStatus) => void;
   setError: (id: number, error: string) => void;
   clearError: (id: number) => void;
   reset: () => void;
 
   // === SELECTORS ===
-  getSaveStatus: (id: number) => SaveStatus;
   getError: (id: number) => string | undefined;
 }
