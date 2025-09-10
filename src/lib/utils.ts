@@ -19,5 +19,24 @@ export function formatDate(dateString: string | undefined): string {
 }
 
 export function getContentPreview(content: string, maxLength: number = 120): string {
-  return content.replace(/[#*`]/g, '').substring(0, maxLength) + (content.length > maxLength ? '...' : '');
+  if (!content) return '';
+  
+  // Remove HTML tags
+  const withoutHtml = content.replace(/<[^>]*>/g, '');
+  
+  // Remove markdown formatting characters
+  const withoutMarkdown = withoutHtml.replace(/[#*`_~\[\]]/g, '');
+  
+  // Clean up whitespace and newlines
+  const cleaned = withoutMarkdown.replace(/\s+/g, ' ').trim();
+  
+  // Apply length limit
+  if (cleaned.length <= maxLength) return cleaned;
+  
+  // Find last complete word within limit
+  const truncated = cleaned.substring(0, maxLength);
+  const lastSpaceIndex = truncated.lastIndexOf(' ');
+  const finalText = lastSpaceIndex > 0 ? truncated.substring(0, lastSpaceIndex) : truncated;
+  
+  return finalText + '...';
 }

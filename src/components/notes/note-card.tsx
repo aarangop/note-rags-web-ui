@@ -20,7 +20,7 @@ export function NoteCard({ note, className }: NoteCardProps) {
       )}>
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
-            <h3 className="text-lg font-semibold text-gray-900 line-clamp-1 flex-1 mr-2">
+            <h3 className="text-lg font-semibold text-foreground line-clamp-1 flex-1 mr-2">
               {note.title}
             </h3>
             <time className="text-sm text-gray-500 whitespace-nowrap">
@@ -29,7 +29,7 @@ export function NoteCard({ note, className }: NoteCardProps) {
           </div>
         </CardHeader>
         <CardContent className="pt-0">
-          <p className="text-gray-600 text-sm line-clamp-3 mb-4">
+          <p className="text-muted-foreground text-sm line-clamp-3 mb-4">
             {getContentPreview(note.content)}
           </p>
           <div className="flex items-center justify-between">
