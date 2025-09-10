@@ -1,82 +1,74 @@
 "use client";
 
-import { SaveStatus } from "@/lib/stores/notes-store";
+import { SaveStatus } from "@/lib/types/save-status.types";
 import { cn } from "@/lib/utils";
-import { useEffect, useRef } from "react";
 
 interface SaveIndicatorProps {
   status: SaveStatus;
+  error?: string;
   className?: string;
-  idleTimeout?: number;
 }
 
 export function SaveIndicator({
   className,
   status,
-  idleTimeout = 5000,
+  error,
 }: SaveIndicatorProps) {
-  const idleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const localStatus = useRef(status);
-  const getCircleStyles = () => {
-    switch (status) {
-      case "saving":
-        return {
-          className: "bg-purple-500 animate-pulse",
-          title: "Saving...",
-        };
-      case "saved":
-        return {
-          className: "bg-green-500",
-          title: "Saved",
-        };
-      case "error":
-        return {
-          className: "bg-red-500 animate-shake",
-          title: "Error saving",
-        };
-      case "unsaved":
-        return {
-          className: "bg-yellow-500",
-          title: "Unsaved changes",
-        };
-      case "idle":
-        return {
-          className: "bg-transparent",
-          title: "Saved",
-        };
-      default:
-        return null;
+  const getIndicatorInfo = () => {
+    if (status === "saving") {
+      return {
+        className: "bg-blue-500 animate-pulse",
+        title: "Saving...",
+        text: "Saving...",
+      };
     }
+
+    if (status === "error") {
+      return {
+        className: "bg-red-500",
+        title: error || "Error saving",
+        text: "Error",
+      };
+    }
+
+    if (status === "unsaved") {
+      return {
+        className: "bg-yellow-500",
+        title: "You have unsaved changes (Ctrl+S to save)",
+        text: "Unsaved",
+      };
+    }
+
+    if (status === "saved") {
+      return {
+        className: "bg-green-500",
+        title: "All changes saved",
+        text: "Saved",
+      };
+    }
+
+    // Default to "idle" state (could be used for hiding indicator after delay)
+    return {
+      className: "bg-gray-400",
+      title: "Ready",
+      text: "Ready",
+    };
   };
 
-  useEffect(() => {
-    if (idleTimeoutRef.current) {
-      clearTimeout(idleTimeoutRef.current);
-    }
-
-    if (status !== "saved") return;
-
-    idleTimeoutRef.current = setTimeout(() => {
-      // Note: This assignment won't trigger a re-render and is likely a bug
-      // Consider using state setter instead of direct assignment
-      localStatus.current = "idle";
-    }, idleTimeout);
-  }, [status, idleTimeout]);
-
-  const circleStyles = getCircleStyles();
-
-  if (!circleStyles) {
-    return null;
-  }
+  const indicatorInfo = getIndicatorInfo();
 
   return (
-    <div
-      className={cn(
-        "w-2 h-2 rounded-full transition-all duration-200",
-        circleStyles.className,
-        className
-      )}
-      title={circleStyles.title}
-    />
+    <div className={cn("flex items-center space-x-2 text-xs", className)}>
+      <div
+        className={cn(
+          "w-2 h-2 rounded-full transition-all duration-200",
+          indicatorInfo.className
+        )}
+        title={indicatorInfo.title}
+      />
+      <span className="text-muted-foreground" title={indicatorInfo.title}>
+        {indicatorInfo.text}
+      </span>
+    </div>
   );
 }

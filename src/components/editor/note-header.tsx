@@ -12,32 +12,26 @@ import { Input } from "@/components/ui/input";
 import { MoreHorizontalIcon, SaveIcon, TrashIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SaveIndicator } from "./save-indicator";
-import { SaveStatus } from "@/lib/services/auto-save-service.types";
+import { SaveStatus } from "@/lib/types/save-status.types";
 
 interface NoteHeaderProps {
-  note: any;
-  updateTitle: (title: string) => Promise<any>;
-  forceSave: () => Promise<void>;
-  deleteNote: () => Promise<void>;
+  note: { id: number; title: string; content: string } | null;
+  onTitleChanged: (title: string) => void;
+  onNoteSave: () => void;
+  onNoteDelete: () => void;
   saveStatus: SaveStatus;
+  error?: string;
   className?: string;
-  onDelete?: () => void;
 }
 
-export function NoteHeader({ 
-  note, 
-  updateTitle, 
-  forceSave, 
-  deleteNote, 
+export function NoteHeader({
+  note,
+  onTitleChanged,
+  onNoteSave,
+  onNoteDelete,
   saveStatus,
-  className = "", 
-  onDelete 
+  className = "",
 }: NoteHeaderProps) {
-  
-  const handleDelete = async () => {
-    await deleteNote();
-    onDelete?.();
-  };
   const [isEditing, setIsEditing] = useState(false);
   const [editableTitle, setEditableTitle] = useState(note?.title || "");
 
@@ -50,7 +44,7 @@ export function NoteHeader({
   const handleTitleSubmit = () => {
     setIsEditing(false);
     if (note && editableTitle.trim() !== note.title) {
-      updateTitle(editableTitle.trim() || "Untitled Note");
+      onTitleChanged(editableTitle.trim() || "Untitled Note");
     }
   };
 
@@ -97,13 +91,16 @@ export function NoteHeader({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={forceSave}>
+              <DropdownMenuItem
+                onClick={onNoteSave}
+                disabled={saveStatus === "saved"}
+              >
                 <SaveIcon className="h-4 w-4 mr-2" />
-                Save Note
+                Save Note (Ctrl+S)
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={handleDelete}
+                onClick={onNoteDelete}
                 className="text-destructive focus:text-destructive focus:bg-destructive/10"
               >
                 <TrashIcon className="h-4 w-4 mr-2" />
